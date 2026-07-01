@@ -1,10 +1,10 @@
 {
-  "id": "/mathpowers/",
+  "id": "./",
   "name": "Math Powers Quiz",
   "short_name": "MathPowers",
   "description": "Train your memory with perfect squares, cubes, and roots.",
-  "start_url": "/mathpowers/",
-  "scope": "/mathpowers/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#0f0f13",
@@ -62,34 +62,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Perfect Squares",
-      "short_name": "Squares",
-      "description": "Quiz on perfect squares",
-      "url": "/mathpowers/?type=squares",
-      "icons": [
-        {
-          "src": "icons/icon-96.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "Perfect Cubes",
-      "short_name": "Cubes",
-      "description": "Quiz on perfect cubes",
-      "url": "/mathpowers/?type=cubes",
-      "icons": [
-        {
-          "src": "icons/icon-96.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
     }
   ]
 }
