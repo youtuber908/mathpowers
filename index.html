@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Math Powers Quiz</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6c63ff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MathPowers">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+<link rel="apple-touch-startup-image" href="icons/icon-512.png">
+<meta name="description" content="Train your memory with perfect squares, cubes, and roots.">
+<style>
+  /* ── TOKENS ─────────────────────────────────────────────── */
+  :root {
+    --bg:        #0f0f13;
+    --surface:   #1a1a24;
+    --surface2:  #22222f;
+    --border:    #2e2e40;
+    --accent:    #6c63ff;
+    --accent2:   #a78bfa;
+    --green:     #22d3a0;
+    --red:       #f97066;
+    --yellow:    #fbbf24;
+    --text:      #f0eeff;
+    --text2:     #9490b5;
+    --text3:     #5c5882;
+    --radius:    16px;
+    --radius-sm: 10px;
+    --font-display: 'Georgia', serif;
+    --font-body: system-ui, -apple-system, sans-serif;
+    --transition: 0.22s cubic-bezier(.4,0,.2,1);
+  }
+  .light {
+    --bg:        #f5f4ff;
+    --surface:   #ffffff;
+    --surface2:  #eeeeff;
+    --border:    #d8d6f0;
+    --accent:    #5b52e8;
+    --accent2:   #7c6fea;
+    --green:     #059669;
+    --red:       #dc2626;
+    --yellow:    #d97706;
+    --text:      #1a1830;
+    --text2:     #5450a0;
+    --text3:     #9994c4;
+  }
+
+  /* ── RESET ───────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: var(--font-body); background: var(--bg); color: var(--text); transition: background var(--transition), color var(--transition); }
+  button { cursor: pointer; border: none; background: none; font-family: inherit; }
+  input { font-family: inherit; }
+
+  /* ── LAYOUT ──────────────────────────────────────────────── */
+  #app {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 16px 40px;
+    max-width: 540px;
+    margin: 0 auto;
+  }
+
+  /* ── TOP BAR ─────────────────────────────────────────────── */
+  .topbar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 0 14px;
+  }
+  .logo {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .logo span { color: var(--accent2); }
+  .theme-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    transition: background var(--transition), transform 0.15s;
+  }
+  .theme-btn:active { transform: scale(0.92); }
+
+  /* ── SCREEN BASE ─────────────────────────────────────────── */
+  .screen { width: 100%; display: none; flex-direction: column; gap: 16px; }
+  .screen.active { display: flex; }
+
+  /* ── CARD ────────────────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: background var(--transition);
+  }
+
+  /* ── SETUP SCREEN ────────────────────────────────────────── */
+  .setup-hero {
+    text-align: center;
+    padding: 24px 0 8px;
+  }
+  .setup-hero .big-symbol {
+    font-size: 3.5rem;
+    line-height: 1;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 20px color-mix(in srgb, var(--accent) 50%, transparent));
+  }
+  .setup-hero h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+  .setup-hero p { font-size: 0.9rem; color: var(--text2); }
+
+  /* type selector */
+  .type-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  /* root symbol sizing — slightly smaller to fit cleanly */
+  .type-btn .type-icon-root { font-size: 1.35rem; line-height: 1; }
+  .type-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 18px 12px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    transition: all var(--transition);
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+  .type-btn .type-icon { font-size: 1.7rem; line-height: 1; }
+  .type-btn .type-eq { font-family: var(--font-display); font-size: 1.05rem; color: var(--text3); }
+  .type-btn.selected {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+    color: var(--text);
+  }
+  .type-btn.selected .type-eq { color: var(--accent2); }
+
+  /* range inputs */
+  .range-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .range-group label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+  .combo-wrap {
+    position: relative;
+  }
+  .combo-input {
+    width: 100%;
+    padding: 12px 38px 12px 14px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 1.1rem;
+    font-weight: 700;
+    outline: none;
+    transition: border-color var(--transition);
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .combo-input::-webkit-outer-spin-button,
+  .combo-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .combo-input:focus { border-color: var(--accent); }
+  .combo-arrow {
+    position: absolute; right: 10px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem; color: var(--text3);
+    pointer-events: none;
+  }
+  .combo-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px); left: 0; right: 0;
+    background: var(--surface);
+    border: 1.5px solid var(--accent);
+    border-radius: var(--radius-sm);
+    max-height: 180px;
+    overflow-y: auto;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .combo-dropdown.open { display: block; }
+  .combo-option {
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .combo-option:hover, .combo-option.highlighted { background: color-mix(in srgb, var(--accent) 15%, var(--surface)); }
+
+  .validation-msg {
+    font-size: 0.82rem;
+    color: var(--red);
+    min-height: 18px;
+    padding-left: 2px;
+    transition: opacity 0.2s;
+  }
+
+  .section-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text3);
+    margin-bottom: 2px;
+  }
+
+  /* start button */
+  .start-btn {
+    width: 100%;
+    padding: 17px;
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    transition: background var(--transition), transform 0.12s, box-shadow 0.12s;
+    box-shadow: 0 4px 20px color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  .start-btn:hover { background: var(--accent2); box-shadow: 0 6px 24px color-mix(in srgb, var(--accent) 50%, transparent); }
+  .start-btn:active { transform: scale(0.98); }
+  .start-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  /* ── QUIZ SCREEN ─────────────────────────────────────────── */
+  .quiz-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .quiz-type-badge {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+    color: var(--accent2);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+  .quit-btn {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text3);
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    transition: color var(--transition), border-color var(--transition);
+  }
+  .quit-btn:hover { color: var(--red); border-color: var(--red); }
+
+  /* progress bar */
+  .progress-wrap {
+    width: 100%;
+    height: 7px;
+    background: var(--surface2);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    min-width: 6px;
+  }
+
+  /* stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .stat-cell {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 6px;
+    text-align: center;
+  }
+  .stat-val {
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--text);
+  }
+  .stat-val.green { color: var(--green); }
+  .stat-val.red { color: var(--red); }
+  .stat-lbl {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+
+  /* question card */
+  .question-card {
+    padding: 36px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .question-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .q-number {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .q-text {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    color: var(--text);
+  }
+  .q-text sup {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent2);
+    vertical-align: super;
+  }
+  .q-subtext {
+    font-size: 0.88rem;
+    color: var(--text2);
+  }
+
+  /* feedback banner */
+  .feedback-banner {
+    padding: 13px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: center;
+    display: none;
+    animation: slideIn 0.2s ease;
+  }
+  .feedback-banner.correct {
+    display: block;
+    background: color-mix(in srgb, var(--green) 12%, var(--surface));
+    border: 1.5px solid color-mix(in srgb, var(--green) 40%, transparent);
+    color: var(--green);
+  }
+  .feedback-banner.wrong {
+    display: block;
+    background: color-mix(in srgb, var(--red) 12%, var(--surface));
+    border: 1.5px solid color-mix(in srgb, var(--red) 40%, transparent);
+    color: var(--red);
+  }
+  .feedback-banner .reveal {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+  .feedback-banner .reveal strong { color: var(--text); font-weight: 700; }
+
+  /* answer input area */
+  .answer-area {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .answer-input {
+    width: 100%;
+    padding: 18px 20px;
+    font-size: 1.8rem;
+    font-weight: 800;
+    text-align: center;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    outline: none;
+    letter-spacing: 2px;
+    transition: border-color var(--transition);
+    caret-color: var(--accent);
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .answer-input::-webkit-outer-spin-button,
+  .answer-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .answer-input:focus { border-color: var(--accent); }
+  .answer-input.shake { animation: shake 0.4s ease; }
+  .answer-input.pulse-green { animation: pulseGreen 0.5s ease; }
+
+  /* num keypad */
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .key {
+    padding: 16px;
+    border-radius: var(--radius-sm);
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text);
+    transition: background 0.1s, transform 0.1s, border-color 0.1s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .key:active, .key.pressed { transform: scale(0.93); background: color-mix(in srgb, var(--accent) 18%, var(--surface)); border-color: var(--accent); }
+  .key.key-submit {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-size: 1.3rem;
+    box-shadow: 0 3px 12px color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  .key.key-submit:active { background: var(--accent2); border-color: var(--accent2); }
+  .key.key-back { font-size: 1.4rem; }
+  .key.key-zero { grid-column: span 1; }
+
+  /* live timer */
+  .live-timer {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text3);
+    font-weight: 600;
+  }
+
+  /* ── COMPLETION SCREEN ───────────────────────────────────── */
+  .complete-hero {
+    text-align: center;
+    padding: 28px 20px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .complete-hero .trophy { font-size: 3.5rem; line-height: 1; margin-bottom: 10px; animation: bounceIn 0.6s cubic-bezier(.34,1.56,.64,1); }
+  .complete-hero h2 { font-size: 1.7rem; font-weight: 800; margin-bottom: 6px; }
+  .complete-hero .complete-sub { font-size: 0.9rem; color: var(--text2); }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .summary-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+  }
+  .summary-item .s-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text3); margin-bottom: 4px; }
+  .summary-item .s-val { font-size: 1.15rem; font-weight: 800; color: var(--text); }
+  .summary-item.accent-item { background: color-mix(in srgb, var(--accent) 12%, var(--surface)); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+  .summary-item.accent-item .s-val { color: var(--accent2); font-size: 1.4rem; }
+  .summary-item.green-item .s-val { color: var(--green); }
+  .summary-item.red-item .s-val { color: var(--red); }
+
+  .end-score {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, var(--surface)) 0%, var(--surface) 100%);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    border-radius: var(--radius);
+  }
+  .end-score .score-label { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text2); margin-bottom: 6px; }
+  .end-score .score-val { font-size: 3rem; font-weight: 900; color: var(--text); letter-spacing: -1px; }
+  .end-score .score-val span { color: var(--accent2); }
+  .end-score .accuracy { font-size: 1rem; color: var(--text2); margin-top: 4px; }
+  .end-score .accuracy strong { color: var(--green); }
+
+  .action-btns { display: flex; flex-direction: column; gap: 10px; }
+  .btn-primary {
+    width: 100%; padding: 16px;
+    border-radius: var(--radius);
+    background: var(--accent); color: #fff;
+    font-size: 1rem; font-weight: 700;
+    transition: background var(--transition), transform 0.12s;
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-secondary {
+    width: 100%; padding: 14px;
+    border-radius: var(--radius);
+    background: var(--surface2); color: var(--text);
+    font-size: 1rem; font-weight: 600;
+    border: 1.5px solid var(--border);
+    transition: all var(--transition);
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent2); }
+  .btn-secondary:active { transform: scale(0.98); }
+
+  /* ── ANIMATIONS ──────────────────────────────────────────── */
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+  @keyframes pulseGreen {
+    0% { border-color: var(--border); }
+    50% { border-color: var(--green); box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 20%, transparent); }
+    100% { border-color: var(--border); }
+  }
+  @keyframes bounceIn {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn 0.3s ease forwards; }
+
+  /* ── SCROLLBAR ───────────────────────────────────────────── */
+  .combo-dropdown::-webkit-scrollbar { width: 4px; }
+  .combo-dropdown::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* ── DESKTOP ENHANCEMENTS ────────────────────────────────── */
+  @media (min-width: 600px) {
+    #app { padding: 0 24px 60px; }
+    .q-text { font-size: 2.6rem; }
+    .keypad { gap: 10px; }
+    .key { min-height: 64px; font-size: 1.3rem; }
+    .answer-input { font-size: 2rem; padding: 20px; }
+    .stats-row { gap: 10px; }
+    .stat-val { font-size: 1.4rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="logo">Math<span>Powers</span></div>
+    <button class="theme-btn" id="themeBtn" aria-label="Toggle theme">🌙</button>
+  </div>
+
+  <!-- ── SETUP SCREEN ─────────────────── -->
+  <div class="screen active" id="setupScreen">
+
+    <div class="setup-hero">
+      <div class="big-symbol">x²</div>
+      <h1>Powers Quiz</h1>
+      <p>Train your memory with squares &amp; cubes</p>
+    </div>
+
+    <div class="card">
+      <div class="section-label" style="margin-bottom:12px">Quiz Type</div>
+      <div class="type-selector">
+        <button class="type-btn selected" id="btnSquares" onclick="selectType('squares')">
+          <span class="type-icon">²</span>
+          <span>Perfect Squares</span>
+          <span class="type-eq">5² = 25</span>
+        </button>
+        <button class="type-btn" id="btnCubes" onclick="selectType('cubes')">
+          <span class="type-icon">³</span>
+          <span>Perfect Cubes</span>
+          <span class="type-eq">4³ = 64</span>
+        </button>
+        <button class="type-btn" id="btnSqRoots" onclick="selectType('sqroots')">
+          <span class="type-icon-root">√</span>
+          <span>Square Roots</span>
+          <span class="type-eq">√25 = 5</span>
+        </button>
+        <button class="type-btn" id="btnCbRoots" onclick="selectType('cbroots')">
+          <span class="type-icon-root">∛</span>
+          <span>Cube Roots</span>
+          <span class="type-eq">∛64 = 4</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label" style="margin-bottom:12px">Number Range</div>
+      <div class="range-row">
+        <div class="range-group">
+          <label for="fromInput">From</label>
+          <div class="combo-wrap" id="fromWrap">
+            <input class="combo-input" id="fromInput" type="number" min="1" max="99" value="1" inputmode="numeric" autocomplete="off" onclick="openDropdown('from')" onkeydown="comboKey(event,'from')" oninput="comboInput('from')">
+            <span class="combo-arrow">▾</span>
+            <div class="combo-dropdown" id="fromDropdown"></div>
+          </div>
+        </div>
+        <div class="range-group">
+          <label for="toInput">To</label>
+          <div class="combo-wrap" id="toWrap">
+            <input class="combo-input" id="toInput" type="number" min="1" max="100" value="12" inputmode="numeric" autocomplete="off" onclick="openDropdown('to')" onkeydown="comboKey(event,'to')" oninput="comboInput('to')">
+            <span class="combo-arrow">▾</span>
+            <div class="combo-dropdown" id="toDropdown"></div>
+          </div>
+        </div>
+      </div>
+      <div class="validation-msg" id="validMsg"></div>
+    </div>
+
+    <button class="start-btn" id="startBtn" onclick="startQuiz()">Start Quiz →</button>
+
+  </div>
+
+  <!-- ── QUIZ SCREEN ──────────────────── -->
+  <div class="screen" id="quizScreen">
+
+    <div class="quiz-header">
+      <span class="quiz-type-badge" id="quizBadge">Perfect Squares</span>
+      <button class="quit-btn" onclick="quitQuiz()">✕ Quit</button>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-cell">
+        <div class="stat-val" id="statQ">0</div>
+        <div class="stat-lbl">Question</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-val green" id="statC">0</div>
+        <div class="stat-lbl">Correct</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-val red" id="statW">0</div>
+        <div class="stat-lbl">Wrong</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-val" id="statR">0</div>
+        <div class="stat-lbl">Left</div>
+      </div>
+    </div>
+
+    <div class="card question-card" id="questionCard">
+      <div class="q-number" id="qNumber">Question 1 of 12</div>
+      <div class="q-text" id="qText">Square of 7</div>
+      <div class="q-subtext" id="qSub">What is 7²?</div>
+    </div>
+
+    <div class="feedback-banner" id="feedbackBanner"></div>
+
+    <div class="answer-area">
+      <input class="answer-input" id="answerInput" type="text" inputmode="none"
+             placeholder="?" autocomplete="off" readonly
+             aria-label="Your answer">
+      <div class="keypad" id="keypad">
+        <button class="key" onclick="keyPress('7')">7</button>
+        <button class="key" onclick="keyPress('8')">8</button>
+        <button class="key" onclick="keyPress('9')">9</button>
+        <button class="key" onclick="keyPress('4')">4</button>
+        <button class="key" onclick="keyPress('5')">5</button>
+        <button class="key" onclick="keyPress('6')">6</button>
+        <button class="key" onclick="keyPress('1')">1</button>
+        <button class="key" onclick="keyPress('2')">2</button>
+        <button class="key" onclick="keyPress('3')">3</button>
+        <button class="key key-back" onclick="keyPress('back')">⌫</button>
+        <button class="key key-zero" onclick="keyPress('0')">0</button>
+        <button class="key key-submit" onclick="keyPress('submit')">↵</button>
+      </div>
+    </div>
+
+    <div class="live-timer" id="liveTimer">⏱ 0:00</div>
+
+  </div>
+
+  <!-- ── COMPLETE SCREEN ──────────────── -->
+  <div class="screen" id="completeScreen">
+
+    <div class="complete-hero">
+      <div class="trophy" id="trophyEmoji">🎉</div>
+      <h2>Quiz Complete!</h2>
+      <p class="complete-sub" id="completeSub">Perfect Squares · 1 to 12</p>
+    </div>
+
+    <div class="end-score">
+      <div class="score-label">Final Score</div>
+      <div class="score-val" id="endScore">12<span>/12</span></div>
+      <div class="accuracy" id="endAccuracy">Accuracy: <strong>100%</strong></div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-item accent-item">
+        <div class="s-label">Time Taken</div>
+        <div class="s-val" id="sumTime">—</div>
+      </div>
+      <div class="summary-item">
+        <div class="s-label">Avg / Question</div>
+        <div class="s-val" id="sumAvg">—</div>
+      </div>
+      <div class="summary-item green-item">
+        <div class="s-label">Correct</div>
+        <div class="s-val" id="sumCorrect">—</div>
+      </div>
+      <div class="summary-item red-item">
+        <div class="s-label">Wrong Attempts</div>
+        <div class="s-val" id="sumWrong">—</div>
+      </div>
+      <div class="summary-item" style="grid-column: span 2">
+        <div class="s-label">Quiz Details</div>
+        <div class="s-val" id="sumDetails" style="font-size:0.95rem; font-weight:600; color:var(--text2)">—</div>
+      </div>
+    </div>
+
+    <div class="action-btns">
+      <button class="btn-primary" onclick="retrySame()">↺ Retry Same Range</button>
+      <button class="btn-secondary" onclick="newQuiz()">✦ New Quiz</button>
+      <button class="btn-secondary" onclick="showSetup()">⚙ Change Settings</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+/* ── STATE ───────────────────────────────────────────────── */
+let quizType = 'squares';
+let fromVal = 1, toVal = 12;
+let questions = [], currentQ = null;
+let correctCount = 0, wrongCount = 0, totalQ = 0;
+let startTime = 0, timerInterval = null;
+let lastSettings = {};
+let wrongShown = false; // track if wrong answer was revealed
+
+/* ── THEME ───────────────────────────────────────────────── */
+const themeBtn = document.getElementById('themeBtn');
+let darkMode = true;
+themeBtn.addEventListener('click', () => {
+  darkMode = !darkMode;
+  document.body.classList.toggle('light', !darkMode);
+  themeBtn.textContent = darkMode ? '🌙' : '☀️';
+});
+
+/* ── SCREEN MANAGEMENT ───────────────────────────────────── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+/* ── COMBO BOX ───────────────────────────────────────────── */
+const COMBO_VALUES = Array.from({length: 100}, (_, i) => i + 1);
+
+function buildDropdown(which) {
+  const dd = document.getElementById(which + 'Dropdown');
+  dd.innerHTML = '';
+  COMBO_VALUES.forEach(v => {
+    const el = document.createElement('div');
+    el.className = 'combo-option';
+    el.textContent = v;
+    el.dataset.val = v;
+    el.addEventListener('mousedown', (e) => { e.preventDefault(); selectCombo(which, v); });
+    el.addEventListener('touchend', (e) => { e.preventDefault(); selectCombo(which, v); });
+    dd.appendChild(el);
+  });
+}
+
+function openDropdown(which) {
+  buildDropdown(which);
+  const dd = document.getElementById(which + 'Dropdown');
+  document.querySelectorAll('.combo-dropdown.open').forEach(d => {
+    if (d !== dd) d.classList.remove('open');
+  });
+  dd.classList.toggle('open');
+  // scroll to current value
+  const cur = parseInt(document.getElementById(which + 'Input').value) || 1;
+  const opts = dd.querySelectorAll('.combo-option');
+  const idx = cur - 1;
+  if (opts[idx]) {
+    opts[idx].classList.add('highlighted');
+    opts[idx].scrollIntoView({ block: 'nearest' });
+  }
+}
+
+function selectCombo(which, val) {
+  document.getElementById(which + 'Input').value = val;
+  document.getElementById(which + 'Dropdown').classList.remove('open');
+  if (which === 'from') fromVal = val; else toVal = val;
+  validateRange();
+}
+
+function comboInput(which) {
+  const v = parseInt(document.getElementById(which + 'Input').value);
+  if (which === 'from') fromVal = v; else toVal = v;
+  validateRange();
+}
+
+function comboKey(e, which) {
+  if (e.key === 'Enter' || e.key === 'Escape') {
+    document.getElementById(which + 'Dropdown').classList.remove('open');
+  }
+}
+
+// Close dropdowns on outside click
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.combo-wrap')) {
+    document.querySelectorAll('.combo-dropdown.open').forEach(d => d.classList.remove('open'));
+  }
+});
+
+/* ── VALIDATION ──────────────────────────────────────────── */
+function validateRange() {
+  const f = parseInt(document.getElementById('fromInput').value);
+  const t = parseInt(document.getElementById('toInput').value);
+  const msg = document.getElementById('validMsg');
+  const btn = document.getElementById('startBtn');
+
+  if (isNaN(f) || f < 1) { msg.textContent = 'From must be at least 1'; btn.disabled = true; return false; }
+  if (isNaN(t) || t < 1) { msg.textContent = 'To must be at least 1'; btn.disabled = true; return false; }
+  if (f >= t) { msg.textContent = '"From" must be less than "To"'; btn.disabled = true; return false; }
+  if (f > 99 || t > 100) { msg.textContent = 'Values must be between 1 and 100'; btn.disabled = true; return false; }
+
+  msg.textContent = '';
+  fromVal = f; toVal = t;
+  btn.disabled = false;
+  return true;
+}
+
+/* ── TYPE SELECTOR ───────────────────────────────────────── */
+function selectType(type) {
+  quizType = type;
+  ['btnSquares','btnCubes','btnSqRoots','btnCbRoots'].forEach(id => {
+    document.getElementById(id).classList.remove('selected');
+  });
+  const map = { squares:'btnSquares', cubes:'btnCubes', sqroots:'btnSqRoots', cbroots:'btnCbRoots' };
+  document.getElementById(map[type]).classList.add('selected');
+}
+
+/* ── SHUFFLE ─────────────────────────────────────────────── */
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/* ── QUIZ START ──────────────────────────────────────────── */
+function startQuiz() {
+  if (!validateRange()) return;
+  lastSettings = { quizType, fromVal, toVal };
+
+  questions = [];
+  for (let n = fromVal; n <= toVal; n++) {
+    if (quizType === 'squares') {
+      questions.push({ display: n, answer: n * n });
+    } else if (quizType === 'cubes') {
+      questions.push({ display: n, answer: n * n * n });
+    } else if (quizType === 'sqroots') {
+      // question shows n², answer is n
+      questions.push({ display: n * n, answer: n });
+    } else if (quizType === 'cbroots') {
+      // question shows n³, answer is n
+      questions.push({ display: n * n * n, answer: n });
+    }
+  }
+  shuffle(questions);
+
+  totalQ = questions.length;
+  correctCount = 0;
+  wrongCount = 0;
+  wrongShown = false;
+
+  const labels = { squares:'Perfect Squares', cubes:'Perfect Cubes', sqroots:'Square Roots', cbroots:'Cube Roots' };
+  document.getElementById('quizBadge').textContent = labels[quizType];
+  document.getElementById('statR').textContent = totalQ;
+
+  updateStats();
+  showScreen('quizScreen');
+  startTimer();
+  loadQuestion();
+}
+
+/* ── TIMER ───────────────────────────────────────────────── */
+function startTimer() {
+  startTime = Date.now();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    document.getElementById('liveTimer').textContent = '⏱ ' + formatTime(Math.floor((Date.now() - startTime) / 1000));
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+}
+
+function formatTime(secs) {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+/* ── LOAD QUESTION ───────────────────────────────────────── */
+function loadQuestion() {
+  if (questions.length === 0) { endQuiz(); return; }
+  currentQ = questions[0];
+  wrongShown = false;
+
+  const idx = totalQ - questions.length + 1;
+  document.getElementById('qNumber').textContent = `Question ${idx} of ${totalQ}`;
+
+  let mainHTML = '', subHTML = '';
+  if (quizType === 'squares') {
+    mainHTML = `Square of <strong>${currentQ.display}</strong>`;
+    subHTML  = `What is ${currentQ.display}<sup>2</sup>?`;
+  } else if (quizType === 'cubes') {
+    mainHTML = `Cube of <strong>${currentQ.display}</strong>`;
+    subHTML  = `What is ${currentQ.display}<sup>3</sup>?`;
+  } else if (quizType === 'sqroots') {
+    mainHTML = `<span style="font-size:0.75em;vertical-align:middle;margin-right:2px">√</span><strong>${currentQ.display}</strong>`;
+    subHTML  = `What is the square root of ${currentQ.display}?`;
+  } else if (quizType === 'cbroots') {
+    mainHTML = `<span style="font-size:0.75em;vertical-align:middle;margin-right:2px">∛</span><strong>${currentQ.display}</strong>`;
+    subHTML  = `What is the cube root of ${currentQ.display}?`;
+  }
+
+  document.getElementById('qText').innerHTML = mainHTML;
+  document.getElementById('qSub').innerHTML = subHTML;
+
+  document.getElementById('answerInput').value = '';
+  document.getElementById('answerInput').classList.remove('shake', 'pulse-green');
+
+  hideFeedback();
+  updateStats();
+  updateProgress();
+
+  document.getElementById('answerInput').classList.add('fade-in');
+  setTimeout(() => document.getElementById('answerInput').classList.remove('fade-in'), 400);
+}
+
+/* ── KEYPAD ──────────────────────────────────────────────── */
+function keyPress(k) {
+  const input = document.getElementById('answerInput');
+  const fb = document.getElementById('feedbackBanner');
+
+  // If correct banner showing, block input
+  if (fb.classList.contains('correct')) return;
+
+  if (k === 'back') {
+    input.value = input.value.slice(0, -1) || '';
+    return;
+  }
+  if (k === 'submit') {
+    submitAnswer();
+    return;
+  }
+  if (input.value.length < 8) {
+    input.value += k;
+  }
+
+  // Add brief press animation
+  const keys = document.querySelectorAll('.key');
+  keys.forEach(key => {
+    if (key.textContent.trim() === k || (k === 'back' && key.classList.contains('key-back'))) {
+      key.classList.add('pressed');
+      setTimeout(() => key.classList.remove('pressed'), 120);
+    }
+  });
+}
+
+// Also support physical keyboard during quiz
+document.addEventListener('keydown', (e) => {
+  if (!document.getElementById('quizScreen').classList.contains('active')) return;
+  if (e.key >= '0' && e.key <= '9') keyPress(e.key);
+  else if (e.key === 'Backspace') keyPress('back');
+  else if (e.key === 'Enter') keyPress('submit');
+});
+
+/* ── SUBMIT ──────────────────────────────────────────────── */
+function submitAnswer() {
+  const input = document.getElementById('answerInput');
+  const val = parseInt(input.value);
+  if (isNaN(val) || input.value === '') return;
+
+  if (val === currentQ.answer) {
+    showCorrect();
+  } else {
+    showWrong(val);
+  }
+}
+
+function showCorrect() {
+  correctCount++;
+  const input = document.getElementById('answerInput');
+  input.classList.add('pulse-green');
+
+  const fb = document.getElementById('feedbackBanner');
+  fb.className = 'feedback-banner correct';
+  fb.innerHTML = '✅ Correct!';
+  fb.style.display = 'block';
+
+  updateStats();
+  questions.shift(); // remove from pool
+
+  setTimeout(() => {
+    hideFeedback();
+    input.classList.remove('pulse-green');
+    loadQuestion();
+  }, 1000);
+}
+
+function showWrong(entered) {
+  wrongCount++;
+  wrongShown = true;
+
+  const input = document.getElementById('answerInput');
+  input.value = '';
+  input.classList.add('shake');
+  setTimeout(() => input.classList.remove('shake'), 450);
+
+  const fb = document.getElementById('feedbackBanner');
+  fb.className = 'feedback-banner wrong';
+  fb.innerHTML = `❌ Incorrect<div class="reveal">Correct answer: <strong>${currentQ.answer}</strong> — try again</div>`;
+  fb.style.display = 'block';
+
+  updateStats();
+
+  // Auto-hide wrong banner after 2.5s but keep question
+  setTimeout(() => {
+    if (fb.classList.contains('wrong')) hideFeedback();
+  }, 2500);
+}
+
+function hideFeedback() {
+  const fb = document.getElementById('feedbackBanner');
+  fb.style.display = 'none';
+  fb.className = 'feedback-banner';
+}
+
+/* ── STATS ───────────────────────────────────────────────── */
+function updateStats() {
+  document.getElementById('statQ').textContent = totalQ - questions.length + (questions.length > 0 ? 1 : 0);
+  document.getElementById('statC').textContent = correctCount;
+  document.getElementById('statW').textContent = wrongCount;
+  document.getElementById('statR').textContent = questions.length;
+}
+
+function updateProgress() {
+  const pct = totalQ > 0 ? ((totalQ - questions.length) / totalQ) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+/* ── END QUIZ ────────────────────────────────────────────── */
+function endQuiz() {
+  stopTimer();
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const accuracy = correctCount + wrongCount > 0
+    ? Math.round((correctCount / (correctCount + wrongCount)) * 100)
+    : 100;
+  const avg = totalQ > 0 ? (elapsed / totalQ).toFixed(1) : '—';
+
+  const typeLabels = { squares:'Perfect Squares', cubes:'Perfect Cubes', sqroots:'Square Roots', cbroots:'Cube Roots' };
+  document.getElementById('trophyEmoji').textContent = wrongCount === 0 ? '🏆' : wrongCount < 5 ? '🎉' : '⭐';
+  document.getElementById('completeSub').textContent =
+    `${typeLabels[quizType]} · ${fromVal} to ${toVal}`;
+  document.getElementById('endScore').innerHTML = `${correctCount}<span>/${totalQ}</span>`;
+  document.getElementById('endAccuracy').innerHTML = `Accuracy: <strong>${accuracy}%</strong>`;
+  document.getElementById('sumTime').textContent = formatTime(elapsed);
+  document.getElementById('sumAvg').textContent = avg + 's';
+  document.getElementById('sumCorrect').textContent = correctCount + '/' + totalQ;
+  document.getElementById('sumWrong').textContent = wrongCount;
+  document.getElementById('sumDetails').textContent =
+    `${typeLabels[quizType]} · Range ${fromVal}–${toVal} · ${totalQ} questions`;
+
+  updateProgress();
+  showScreen('completeScreen');
+}
+
+/* ── QUIT ────────────────────────────────────────────────── */
+function quitQuiz() {
+  if (confirm('Quit this quiz? Progress will be lost.')) {
+    stopTimer();
+    showScreen('setupScreen');
+  }
+}
+
+/* ── COMPLETION ACTIONS ──────────────────────────────────── */
+function retrySame() {
+  quizType = lastSettings.quizType;
+  fromVal = lastSettings.fromVal;
+  toVal = lastSettings.toVal;
+  document.getElementById('fromInput').value = fromVal;
+  document.getElementById('toInput').value = toVal;
+  selectType(quizType);
+  startQuiz();
+}
+
+function newQuiz() {
+  showSetup();
+}
+
+function showSetup() {
+  stopTimer();
+  showScreen('setupScreen');
+}
+
+/* ── INIT ────────────────────────────────────────────────── */
+validateRange();
+
+/* ── SERVICE WORKER REGISTRATION ────────────────────────── */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .catch(err => console.log('SW registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>
