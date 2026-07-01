@@ -1,18 +1,45 @@
 {
-  "id": "./",
+  "id": "/mathpowers/",
   "name": "Math Powers Quiz",
   "short_name": "MathPowers",
   "description": "Train your memory with perfect squares, cubes, and roots.",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/mathpowers/",
+  "scope": "/mathpowers/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "any",
   "background_color": "#0f0f13",
   "theme_color": "#6c63ff",
   "lang": "en",
-  "categories": [
-    "education",
-    "games"
+  "dir": "ltr",
+  "categories": ["education", "games"],
+  "iarc_rating_id": "",
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "shortcuts": [
+    {
+      "name": "Perfect Squares",
+      "short_name": "Squares",
+      "description": "Quiz on perfect squares",
+      "url": "/mathpowers/?type=squares",
+      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Perfect Cubes",
+      "short_name": "Cubes",
+      "description": "Quiz on perfect cubes",
+      "url": "/mathpowers/?type=cubes",
+      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "icons/splash-1080x1920.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Math Powers Quiz home screen"
+    }
   ],
   "icons": [
     {
@@ -55,13 +82,25 @@
       "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
