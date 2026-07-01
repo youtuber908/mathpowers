@@ -5,9 +5,9 @@
     ],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.youtuber908.mathpowers",
+      "package_name": "io.github.youtuber908.twa",
       "sha256_cert_fingerprints": [
-        "82:86:10:4D:CE:BF:A6:48:88:0E:66:AC:C9:BE:36:EE:48:A0:B4:24:64:6D:E7:8D:DA:27:BF:5C:37:4B:4F:C0"
+        "B5:52:85:C4:C5:CF:90:B4:74:8F:BA:D1:54:31:41:9F:E3:FD:A6:A6:58:71:7B:BC:06:10:E3:2C:84:E3:F5:1F"
       ]
     }
   }
